@@ -4,6 +4,8 @@ import { Header } from "@/components/Header"
 import { Button } from "@/components/ui/button"
 import { BottomNavigation } from "@/components/BottomNavigation"
 import { CameraModal } from "@/components/CameraModal"
+import { MobileCameraModal } from "@/components/MobileCameraModal"
+import { Capacitor } from '@capacitor/core'
 
 // Mock food data
 const foodData = {
@@ -87,6 +89,7 @@ function MacroRing({ label, value, max, color }: { label: string; value: number;
 export default function Food() {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([])
+  const isNativeApp = Capacitor.isNativePlatform()
 
   const handleCapturePhoto = (photo: string) => {
     setCapturedPhotos(prev => [photo, ...prev])
@@ -255,12 +258,20 @@ export default function Food() {
       </div>
       <BottomNavigation />
       
-      {/* Camera Modal */}
-      <CameraModal
-        isOpen={isCameraOpen}
-        onClose={() => setIsCameraOpen(false)}
-        onCapture={handleCapturePhoto}
-      />
+      {/* Camera Modal - Use native on mobile, web fallback */}
+      {isNativeApp ? (
+        <MobileCameraModal
+          isOpen={isCameraOpen}
+          onClose={() => setIsCameraOpen(false)}
+          onCapture={handleCapturePhoto}
+        />
+      ) : (
+        <CameraModal
+          isOpen={isCameraOpen}
+          onClose={() => setIsCameraOpen(false)}
+          onCapture={handleCapturePhoto}
+        />
+      )}
     </div>
   )
 }

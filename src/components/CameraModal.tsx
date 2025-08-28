@@ -218,16 +218,12 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
 
   const handleCapture = async () => {
     if (!videoRef.current || !canvasRef.current || !hasPermission) {
-      console.error('Missing required elements for capture:', {
-        video: !!videoRef.current,
-        canvas: !!canvasRef.current,
-        permission: hasPermission
-      })
+      addDebugInfo(`Capture failed - missing elements: video=${!!videoRef.current}, canvas=${!!canvasRef.current}, permission=${hasPermission}`)
       return
     }
     
     setIsCapturing(true)
-    console.log('Starting capture...')
+    addDebugInfo('Starting capture...')
     
     try {
       const video = videoRef.current
@@ -238,10 +234,11 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
 
       // Ensure video is playing and has dimensions
       if (video.videoWidth === 0 || video.videoHeight === 0) {
+        addDebugInfo(`Video not ready - dimensions: ${video.videoWidth}x${video.videoHeight}`)
         throw new Error('Video not ready - no dimensions available')
       }
 
-      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight)
+      addDebugInfo(`Capturing from video: ${video.videoWidth}x${video.videoHeight}`)
 
       // Set canvas dimensions to match video
       canvas.width = video.videoWidth
@@ -254,7 +251,7 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
       canvas.toBlob((blob) => {
         if (blob) {
           const photoUrl = URL.createObjectURL(blob)
-          console.log('Photo captured successfully:', photoUrl)
+          addDebugInfo(`Photo captured successfully: ${blob.size} bytes`)
           setCaptured(true)
           setIsCapturing(false)
           
@@ -271,7 +268,7 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
         }
       }, 'image/jpeg', 0.9)
     } catch (err) {
-      console.error('Capture error:', err)
+      addDebugInfo(`Capture error: ${err instanceof Error ? err.message : String(err)}`)
       setError("Failed to capture photo. Please try again.")
       setIsCapturing(false)
     }
@@ -349,8 +346,29 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover bg-black"
+                  style={{ 
+                    minHeight: '200px',
+                    backgroundColor: '#000'
+                  }}
+                  onLoadedData={() => addDebugInfo('Video data loaded and ready to play')}
+                  onPlay={() => addDebugInfo('Video started playing')}
+                  onTimeUpdate={() => {
+                    if (videoRef.current) {
+                      addDebugInfo(`Video playing: ${videoRef.current.videoWidth}x${videoRef.current.videoHeight}`)
+                    }
+                  }}
                 />
+                
+                {/* Loading overlay if video dimensions aren't ready */}
+                {hasPermission && videoRef.current?.videoWidth === 0 && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="text-center">
+                      <Camera className="h-8 w-8 text-white animate-pulse mx-auto mb-2" />
+                      <p className="text-white text-sm">Starting camera...</p>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Success Overlay */}
                 {captured && (

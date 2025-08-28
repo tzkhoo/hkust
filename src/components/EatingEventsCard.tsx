@@ -2,12 +2,15 @@ import { useState } from "react"
 import { Camera, Timer, Utensils, Sparkles, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CameraModal } from "./CameraModal"
+import { MobileCameraModal } from "./MobileCameraModal"
 import { WatchDetection } from "./WatchDetection"
+import { Capacitor } from '@capacitor/core'
 
 export function EatingEventsCard() {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [recentPhotos, setRecentPhotos] = useState<string[]>([])
   const [isWatchConnected, setIsWatchConnected] = useState(true)
+  const isNativeApp = Capacitor.isNativePlatform()
 
   const handleCapturePhoto = (photo: string) => {
     setRecentPhotos(prev => [photo, ...prev.slice(0, 2)])
@@ -141,12 +144,20 @@ export function EatingEventsCard() {
         )}
       </div>
 
-      {/* Camera Modal */}
-      <CameraModal
-        isOpen={isCameraOpen}
-        onClose={() => setIsCameraOpen(false)}
-        onCapture={handleCapturePhoto}
-      />
+      {/* Camera Modal - Use native on mobile, web fallback */}
+      {isNativeApp ? (
+        <MobileCameraModal
+          isOpen={isCameraOpen}
+          onClose={() => setIsCameraOpen(false)}
+          onCapture={handleCapturePhoto}
+        />
+      ) : (
+        <CameraModal
+          isOpen={isCameraOpen}
+          onClose={() => setIsCameraOpen(false)}
+          onCapture={handleCapturePhoto}
+        />
+      )}
     </>
   )
 }
