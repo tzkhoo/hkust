@@ -1,0 +1,871 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smart Wearable Health App - Liquid Glass Design System */
+
+@layer base {
+  :root {
+    /* Light Mode - Soft airy gradients with Apple-inspired freshness */
+    --background: 220 15% 98%;
+    --background-secondary: 210 20% 94%;
+    --background-gradient-start: 220 40% 96%;  /* Soft sky blue */
+    --background-gradient-end: 270 30% 98%;    /* Gentle lavender */
+    --background-gradient-mid: 240 35% 97%;    /* Transition blue-lavender */
+    --foreground: 230 30% 15%;                 /* Dark navy */
+    --foreground-secondary: 220 15% 45%;       /* Medium gray */
+
+    /* Enhanced Glassmorphism Effects - Light */
+    --glass-background: 0 0% 100%;
+    --glass-border: 220 20% 88%;
+    --glass-shadow: 220 25% 15%;
+    --glass-blur: 20px;
+    --glass-glow: 220 40% 85%;
+    
+    /* Primary Brand - Electric Blue */
+    --primary: 210 95% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 210 100% 75%;
+    
+    /* Secondary - Teal & Purple accents */
+    --secondary: 180 75% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 270 70% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Status Colors */
+    --success: 142 75% 50%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 95% 55%;
+    --warning-foreground: 215 25% 15%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Surface Colors */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+    
+    /* Interactive Elements */
+    --muted: 215 15% 92%;
+    --muted-foreground: 215 15% 45%;
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 210 95% 55%;
+    
+    /* Metrics & Data */
+    --metric-positive: 142 75% 50%;
+    --metric-negative: 0 75% 55%;
+    --metric-neutral: 215 15% 65%;
+    
+    /* Golden AI Theme */
+    --ai-gold: 45 100% 60%;
+    --ai-gold-light: 48 100% 70%;
+    --ai-gold-dark: 42 100% 50%;
+    --ai-gold-glow: 45 100% 75%;
+    --ai-background: 45 50% 8%;
+    --ai-border: 45 80% 25%;
+    
+    --radius: 12px;
+    --blur-strength: 12px;
+    --glass-opacity: 0.15;
+  }
+
+  .dark {
+    /* Dark Mode - Dynamic atmospheric gradients (navy → indigo → deep purple) */
+    --background: 220 30% 8%;
+    --background-secondary: 230 25% 12%;
+    --background-gradient-start: 230 35% 6%;   /* Deep navy */
+    --background-gradient-end: 270 40% 8%;     /* Deep indigo-purple */
+    --background-gradient-mid: 250 38% 7%;     /* Transition indigo */
+    --foreground: 220 15% 95%;                 /* High-contrast white */
+    --foreground-secondary: 220 12% 70%;       /* Soft gray */
+
+    /* Enhanced Glassmorphism Effects - Dark */
+    --glass-background: 220 20% 10%;
+    --glass-border: 220 25% 25%;
+    --glass-shadow: 220 30% 3%;
+    --glass-blur: 24px;
+    --glass-glow: 250 40% 20%;
+    
+    /* Primary Brand - Neon Blue */
+    --primary: 210 100% 65%;
+    --primary-foreground: 220 15% 6%;
+    --primary-glow: 210 100% 80%;
+    
+    /* Secondary - Enhanced contrast */
+    --secondary: 180 65% 55%;
+    --secondary-foreground: 220 15% 6%;
+    --accent: 270 65% 70%;
+    --accent-foreground: 220 15% 6%;
+    
+    /* Status Colors - Dark optimized */
+    --success: 142 70% 60%;
+    --success-foreground: 220 15% 6%;
+    --warning: 45 90% 65%;
+    --warning-foreground: 220 15% 6%;
+    --destructive: 0 70% 65%;
+    --destructive-foreground: 220 15% 6%;
+    
+    /* Surface Colors - Dark */
+    --card: 220 15% 8%;
+    --card-foreground: 215 15% 95%;
+    --popover: 220 15% 8%;
+    --popover-foreground: 215 15% 95%;
+    
+    /* Interactive Elements - Dark */
+    --muted: 220 12% 15%;
+    --muted-foreground: 215 12% 65%;
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 210 100% 65%;
+    
+    /* Metrics & Data - Dark */
+    --metric-positive: 142 70% 60%;
+    --metric-negative: 0 70% 65%;
+    --metric-neutral: 215 12% 55%;
+    
+    /* Golden AI Theme - Dark */
+    --ai-gold: 45 95% 65%;
+    --ai-gold-light: 48 95% 75%;
+    --ai-gold-dark: 42 95% 55%;
+    --ai-gold-glow: 45 100% 80%;
+    --ai-background: 45 40% 5%;
+    --ai-border: 45 70% 20%;
+    
+    --glass-opacity: 0.18;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Typography Scale - Bold, readable hierarchy */
+  h1 { @apply text-4xl font-bold tracking-tight; }
+  h2 { @apply text-3xl font-bold tracking-tight; }
+  h3 { @apply text-2xl font-semibold; }
+  h4 { @apply text-xl font-semibold; }
+  h5 { @apply text-lg font-medium; }
+  h6 { @apply text-base font-medium; }
+}
+
+@layer components {
+  /* Apple-inspired Glassmorphism Card Effects */
+  .glass-card {
+    @apply border;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    background: hsla(var(--glass-background), var(--glass-opacity));
+    border-color: hsla(var(--glass-border), 0.25);
+    box-shadow: 
+      0 8px 32px hsla(var(--glass-shadow), 0.12),
+      0 2px 8px hsla(var(--glass-shadow), 0.08),
+      0 1px 0 hsla(var(--glass-glow), 0.2) inset,
+      0 -1px 0 hsla(var(--glass-shadow), 0.05) inset;
+    border-radius: 20px;
+  }
+  
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:scale-[1.02];
+  }
+  
+  .glass-card-hover:hover {
+    background: hsla(var(--glass-background), calc(var(--glass-opacity) + 0.05));
+    border-color: hsla(var(--glass-border), 0.4);
+    box-shadow: 
+      0 16px 64px hsla(var(--glass-shadow), 0.18),
+      0 4px 16px hsla(var(--glass-shadow), 0.12),
+      0 2px 0 hsla(var(--glass-glow), 0.3) inset,
+      0 0 20px hsla(var(--primary-glow), 0.1);
+  }
+
+  /* Hero Glass Effect with Dynamic Gradients */
+  .hero-glass {
+    @apply glass-card;
+    background: linear-gradient(
+      135deg,
+      hsla(var(--glass-background), calc(var(--glass-opacity) + 0.08)),
+      hsla(var(--glass-background), calc(var(--glass-opacity) + 0.03)),
+      hsla(var(--glass-background), var(--glass-opacity))
+    );
+    border-radius: 24px;
+  }
+
+  /* Health Metric Cards with Enhanced Glow */
+  .metric-card {
+    @apply glass-card-hover p-6 relative overflow-hidden;
+    border-radius: 20px;
+  }
+  
+  .metric-card:hover {
+    box-shadow: 
+      0 16px 64px hsla(var(--glass-shadow), 0.18),
+      0 4px 16px hsla(var(--glass-shadow), 0.12),
+      0 2px 0 hsla(var(--glass-glow), 0.3) inset,
+      0 0 30px hsla(var(--primary-glow), 0.15);
+  }
+
+  /* Enhanced Glow Effects for Health UI */
+  .primary-glow {
+    box-shadow: 0 0 40px hsla(var(--primary-glow), 0.4);
+  }
+  
+  .metric-glow-positive {
+    box-shadow: 0 0 20px hsla(var(--metric-positive), 0.3);
+  }
+  
+  .metric-glow-negative {
+    box-shadow: 0 0 20px hsla(var(--metric-negative), 0.3);
+  }
+  
+  .soft-glow {
+    box-shadow: 0 0 30px hsla(var(--primary-glow), 0.2);
+  }
+
+  /* Smooth Transitions */
+  .smooth-transition {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Data Visualization */
+  .chart-container {
+    @apply glass-card rounded-lg p-4;
+  }
+
+  /* Interactive Buttons */
+  .btn-glass {
+    @apply glass-card px-6 py-3 font-medium transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground font-semibold;
+    @apply hover:bg-primary/90 hover:shadow-lg hover:primary-glow;
+  }
+
+  /* Floating Action Elements */
+  .floating-action {
+    @apply glass-card rounded-full p-4 shadow-lg;
+    @apply hover:scale-110 active:scale-95 transition-transform duration-200;
+  }
+
+  /* Golden AI Theme */
+  .ai-golden {
+    background: linear-gradient(135deg, 
+      hsl(var(--ai-gold)), 
+      hsl(var(--ai-gold-light)), 
+      hsl(var(--ai-gold-dark))
+    );
+    border: 2px solid hsl(var(--ai-border));
+    box-shadow: 
+      0 0 30px hsl(var(--ai-gold-glow) / 0.4),
+      0 8px 32px hsl(var(--ai-gold) / 0.2),
+      inset 0 1px 0 hsl(var(--ai-gold-light) / 0.3);
+  }
+
+  .ai-golden-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-golden-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent, 
+      hsl(var(--ai-gold-light) / 0.3), 
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  .ai-hologram {
+    animation: hologram 3s ease-in-out infinite;
+  }
+
+  @keyframes hologram {
+    0%, 100% { 
+      box-shadow: 
+        0 0 20px hsl(var(--ai-gold-glow) / 0.3),
+        0 0 40px hsl(var(--ai-gold-glow) / 0.2),
+        0 0 60px hsl(var(--ai-gold-glow) / 0.1);
+    }
+    50% { 
+      box-shadow: 
+        0 0 30px hsl(var(--ai-gold-glow) / 0.5),
+        0 0 60px hsl(var(--ai-gold-glow) / 0.3),
+        0 0 90px hsl(var(--ai-gold-glow) / 0.2);
+    }
+  }
+
+  .ai-spin {
+    animation: aiSpin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .ai-charging {
+    animation: aiCharging 1.5s ease-in-out;
+  }
+
+  .ai-projectile {
+    animation: aiProjectile 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes aiSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  @keyframes aiCharging {
+    0% { 
+      transform: scale(1);
+      box-shadow: 0 0 20px hsl(var(--ai-gold-glow) / 0.3);
+    }
+    25% { 
+      transform: scale(1.1);
+      box-shadow: 0 0 40px hsl(var(--ai-gold-glow) / 0.6);
+    }
+    50% { 
+      transform: scale(0.9) rotate(180deg);
+      box-shadow: 0 0 60px hsl(var(--ai-gold-glow) / 0.8);
+    }
+    75% { 
+      transform: scale(1.15) rotate(270deg);
+      box-shadow: 0 0 80px hsl(var(--ai-gold-glow) / 1);
+    }
+    100% { 
+      transform: scale(1) rotate(360deg);
+      box-shadow: 0 0 40px hsl(var(--ai-gold-glow) / 0.4);
+    }
+  }
+
+  @keyframes aiProjectile {
+    0% {
+      transform: scale(1.2);
+      box-shadow: 0 0 60px hsl(var(--ai-gold-glow) / 0.8);
+    }
+    50% {
+      transform: scale(1.3);
+      box-shadow: 0 0 100px hsl(var(--ai-gold-glow) / 1);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 40px hsl(var(--ai-gold-glow) / 0.4);
+    }
+  }
+
+  .ai-popup-enter {
+    animation: popupEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .ai-popup-exit {
+    animation: popupExit 0.3s ease-in;
+  }
+
+  @keyframes popupEnter {
+    0% {
+      opacity: 0;
+      transform: translateY(100%) scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0%) scale(1);
+    }
+  }
+
+  @keyframes popupExit {
+    0% {
+      opacity: 1;
+      transform: translateY(0%) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(100%) scale(0.8);
+    }
+  }
+
+  /* Quantum Bloom AI Button Animations */
+  .quantum-bloom-idle {
+    animation: quantumIdle 4s ease-in-out infinite;
+  }
+
+  .quantum-bloom-activating {
+    animation: quantumActivation 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .quantum-bloom-active {
+    animation: quantumActive 3s ease-in-out infinite;
+  }
+
+  .quantum-particles::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    background: radial-gradient(circle at 20% 80%, hsl(var(--ai-gold-glow) / 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, hsl(var(--ai-gold-glow) / 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, hsl(var(--ai-gold-light) / 0.1) 0%, transparent 30%);
+    border-radius: 50%;
+    animation: quantumParticles 6s linear infinite;
+  }
+
+  .quantum-orbit-1::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 1px solid hsl(var(--ai-gold) / 0.3);
+    border-radius: 50%;
+    border-top-color: hsl(var(--ai-gold-light) / 0.6);
+    animation: quantumOrbit1 8s linear infinite;
+  }
+
+  .quantum-orbit-2::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border: 1px solid hsl(var(--ai-gold-dark) / 0.2);
+    border-radius: 50%;
+    border-bottom-color: hsl(var(--ai-gold-glow) / 0.4);
+    animation: quantumOrbit2 12s linear infinite reverse;
+  }
+
+  .quantum-ripple-1 {
+    border: 2px solid hsl(var(--ai-gold-glow) / 0.6);
+    border-radius: 50%;
+    animation: quantumRipple1 1.5s ease-out;
+  }
+
+  .quantum-ripple-2 {
+    border: 2px solid hsl(var(--ai-gold-light) / 0.4);
+    border-radius: 50%;
+    animation: quantumRipple2 1.5s ease-out 0.2s;
+  }
+
+  .quantum-ripple-3 {
+    border: 2px solid hsl(var(--ai-gold) / 0.3);
+    border-radius: 50%;
+    animation: quantumRipple3 1.5s ease-out 0.4s;
+  }
+
+  .quantum-hologram-beam {
+    background: linear-gradient(45deg, 
+      transparent 0%, 
+      hsl(var(--ai-gold-glow) / 0.1) 25%, 
+      hsl(var(--ai-gold-light) / 0.3) 50%, 
+      hsl(var(--ai-gold-glow) / 0.1) 75%, 
+      transparent 100%);
+    filter: blur(1px);
+    animation: quantumBeam 1.5s ease-out 0.6s;
+    border-radius: 50%;
+  }
+
+  .quantum-active-glow {
+    background: radial-gradient(circle, hsl(var(--ai-gold-glow) / 0.4) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .quantum-ascending-rings::before,
+  .quantum-ascending-rings::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 1px solid hsl(var(--ai-gold-light) / 0.3);
+    border-radius: 50%;
+    animation: quantumAscend 2s ease-in-out infinite;
+  }
+
+  .quantum-ascending-rings::after {
+    inset: -12px;
+    animation-delay: 1s;
+    border-color: hsl(var(--ai-gold-glow) / 0.2);
+  }
+
+  @keyframes quantumIdle {
+    0%, 100% { 
+      box-shadow: 0 0 20px hsl(var(--ai-gold-glow) / 0.3);
+      transform: scale(1);
+    }
+    50% { 
+      box-shadow: 0 0 30px hsl(var(--ai-gold-glow) / 0.5);
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes quantumActivation {
+    0% { 
+      transform: scale(1);
+      box-shadow: 0 0 20px hsl(var(--ai-gold-glow) / 0.3);
+    }
+    20% { 
+      transform: scale(0.9);
+      box-shadow: 0 0 40px hsl(var(--ai-gold-glow) / 0.7);
+    }
+    40% { 
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 0 0 60px hsl(var(--ai-gold-glow) / 0.9);
+    }
+    60% { 
+      transform: scale(1.05) rotate(180deg);
+      box-shadow: 0 0 80px hsl(var(--ai-gold-glow) / 1);
+    }
+    80% { 
+      transform: scale(1.2) rotate(270deg);
+      box-shadow: 0 0 100px hsl(var(--ai-gold-glow) / 1);
+    }
+    100% { 
+      transform: scale(1) rotate(360deg);
+      box-shadow: 0 0 60px hsl(var(--ai-gold-glow) / 0.8);
+    }
+  }
+
+  @keyframes quantumActive {
+    0%, 100% { 
+      box-shadow: 0 0 40px hsl(var(--ai-gold-glow) / 0.6);
+      transform: scale(1);
+    }
+    50% { 
+      box-shadow: 0 0 60px hsl(var(--ai-gold-glow) / 0.8);
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes quantumParticles {
+    0% { opacity: 0.3; transform: rotate(0deg) scale(1); }
+    50% { opacity: 0.6; transform: rotate(180deg) scale(1.1); }
+    100% { opacity: 0.3; transform: rotate(360deg) scale(1); }
+  }
+
+  @keyframes quantumOrbit1 {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes quantumOrbit2 {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes quantumRipple1 {
+    0% { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+    100% { 
+      opacity: 0; 
+      transform: scale(3); 
+    }
+  }
+
+  @keyframes quantumRipple2 {
+    0% { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+    100% { 
+      opacity: 0; 
+      transform: scale(2.5); 
+    }
+  }
+
+  @keyframes quantumRipple3 {
+    0% { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+    100% { 
+      opacity: 0; 
+      transform: scale(2); 
+    }
+  }
+
+  @keyframes quantumBeam {
+    0% { 
+      opacity: 0; 
+      transform: scale(1) rotate(0deg); 
+    }
+    50% { 
+      opacity: 1; 
+      transform: scale(1.5) rotate(180deg); 
+    }
+    100% { 
+      opacity: 0; 
+      transform: scale(2) rotate(360deg); 
+    }
+  }
+
+  @keyframes quantumAscend {
+    0% { 
+      opacity: 0.6; 
+      transform: scale(1) translateY(0); 
+    }
+    50% { 
+      opacity: 0.3; 
+      transform: scale(1.2) translateY(-4px); 
+    }
+    100% { 
+      opacity: 0; 
+      transform: scale(1.5) translateY(-8px); 
+    }
+  }
+
+  /* Health Services Conveyor Belt Animation */
+  .animate-conveyor {
+    animation: conveyorBelt 20s linear infinite;
+  }
+
+  @keyframes conveyorBelt {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* ===========================
+   WEEKLY PROGRESS - PREMIUM DESIGN
+   =========================== */
+
+/* Container with gradient background effects */
+.weekly-progress-container {
+  @apply rounded-3xl overflow-hidden;
+  border-radius: 24px;
+}
+
+.weekly-progress-glow {
+  background: radial-gradient(
+    ellipse 80% 50% at 50% 50%,
+    hsl(var(--primary) / 0.15),
+    hsl(var(--accent) / 0.1),
+    transparent 70%
+  );
+  border-radius: 24px;
+}
+
+.dark .weekly-progress-glow {
+  background: radial-gradient(
+    ellipse 80% 50% at 50% 50%,
+    hsl(210 100% 65% / 0.2),
+    hsl(270 65% 70% / 0.15),
+    hsl(180 65% 55% / 0.1),
+    transparent 70%
+  );
+}
+
+/* Premium glass card with enhanced effects */
+.premium-glass-card {
+  @apply backdrop-blur-xl border border-glass-border/30;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--glass-background) / 0.25),
+    hsl(var(--glass-background) / 0.05)
+  );
+  border-radius: 24px;
+  box-shadow: 
+    0 8px 32px hsl(var(--glass-shadow) / 0.1),
+    0 1px 0 hsl(var(--glass-border) / 0.5) inset,
+    0 -1px 0 hsl(var(--glass-border) / 0.2) inset;
+}
+
+.dark .premium-glass-card {
+  background: linear-gradient(
+    135deg,
+    hsl(220 20% 10% / 0.4),
+    hsl(250 30% 8% / 0.2)
+  );
+  box-shadow: 
+    0 8px 32px hsl(220 30% 3% / 0.3),
+    0 1px 0 hsl(220 25% 25% / 0.6) inset,
+    0 -1px 0 hsl(220 25% 15% / 0.3) inset;
+}
+
+/* Typography styles */
+.weekly-progress-title {
+  @apply bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent;
+}
+
+.weekly-progress-subtitle {
+  @apply text-foreground-secondary;
+}
+
+.dark .weekly-progress-title {
+  @apply bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent;
+}
+
+/* Premium icon wrapper */
+.premium-icon-wrapper {
+  @apply w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--accent) / 0.1));
+  border: 1px solid hsl(var(--glass-border) / 0.3);
+}
+
+.weekly-progress-icon {
+  @apply text-primary relative z-10;
+  filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.4));
+}
+
+.dark .premium-icon-wrapper {
+  background: linear-gradient(135deg, hsl(210 100% 65% / 0.2), hsl(270 65% 70% / 0.15));
+}
+
+/* Progress metric cards */
+.progress-metric-card {
+  @apply p-6 rounded-2xl backdrop-blur-lg border relative overflow-hidden transition-all duration-300;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--glass-background) / 0.2),
+    hsl(var(--glass-background) / 0.05)
+  );
+  border: 1px solid hsl(var(--glass-border) / 0.25);
+  box-shadow: 
+    0 4px 16px hsl(var(--glass-shadow) / 0.05),
+    0 1px 0 hsl(var(--glass-border) / 0.4) inset;
+}
+
+.dark .progress-metric-card {
+  background: linear-gradient(
+    135deg,
+    hsl(220 20% 8% / 0.3),
+    hsl(240 25% 6% / 0.15)
+  );
+  border: 1px solid hsl(220 25% 20% / 0.4);
+  box-shadow: 
+    0 4px 16px hsl(220 30% 3% / 0.2),
+    0 1px 0 hsl(220 25% 25% / 0.5) inset;
+}
+
+.progress-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 24px hsl(var(--glass-shadow) / 0.1),
+    0 1px 0 hsl(var(--glass-border) / 0.6) inset;
+}
+
+.dark .progress-metric-card:hover {
+  box-shadow: 
+    0 8px 24px hsl(220 30% 3% / 0.3),
+    0 1px 0 hsl(220 25% 30% / 0.7) inset;
+}
+
+/* Typography for metric cards */
+.progress-metric-title {
+  @apply font-semibold text-foreground/90;
+}
+
+.progress-metric-value {
+  @apply bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent;
+}
+
+.progress-metric-subtitle {
+  @apply text-foreground-secondary;
+}
+
+.progress-metric-change {
+  @apply text-metric-positive font-medium;
+  filter: drop-shadow(0 0 4px hsl(var(--success) / 0.3));
+}
+
+.dark .progress-metric-title {
+  @apply text-white/90;
+}
+
+.dark .progress-metric-value {
+  @apply bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent;
+}
+
+/* Progress bars with animated gradients */
+.progress-bar-container {
+  @apply relative h-2 rounded-full overflow-hidden mb-2;
+  background: hsl(var(--muted) / 0.3);
+}
+
+.progress-bar {
+  @apply h-full rounded-full relative overflow-hidden;
+  width: 80%; /* Simulated progress */
+}
+
+.steps-gradient {
+  background: linear-gradient(90deg, #06b6d4, #0891b2, #22d3ee);
+  box-shadow: 0 0 12px hsl(186 100% 50% / 0.4);
+}
+
+.heart-gradient {
+  background: linear-gradient(90deg, #ec4899, #f472b6, #f9a8d4);
+  box-shadow: 0 0 12px hsl(330 70% 60% / 0.4);
+}
+
+.sleep-gradient {
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+  box-shadow: 0 0 12px hsl(160 70% 50% / 0.4);
+}
+
+/* Animated shine effect */
+.progress-shine {
+  @apply absolute inset-0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shine 2s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Dark mode adjustments */
+.dark .progress-bar-container {
+  background: hsl(220 25% 15% / 0.5);
+}
+
+.dark .steps-gradient {
+  box-shadow: 0 0 16px hsl(186 100% 50% / 0.3);
+}
+
+.dark .heart-gradient {
+  box-shadow: 0 0 16px hsl(330 70% 60% / 0.3);
+}
+
+.dark .sleep-gradient {
+  box-shadow: 0 0 16px hsl(160 70% 50% / 0.3);
+}
+
+/* Additional utility classes for smooth scrolling */
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
