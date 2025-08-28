@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Camera, X, CheckCircle, AlertCircle } from "lucide-react"
+import { Camera, X, CheckCircle, AlertCircle, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
@@ -15,6 +15,8 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
+  const [isInIframe, setIsInIframe] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string[]>([])
   
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -22,12 +24,25 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
   // Request camera permissions and start stream
   useEffect(() => {
     console.log('CameraModal useEffect triggered, isOpen:', isOpen)
+    
+    // Check if running in iframe
+    const inIframe = window !== window.top
+    setIsInIframe(inIframe)
+    addDebugInfo(`Running in iframe: ${inIframe}`)
+    addDebugInfo(`User agent: ${navigator.userAgent}`)
+    addDebugInfo(`Protocol: ${window.location.protocol}`)
+    addDebugInfo(`Host: ${window.location.host}`)
+    
     if (isOpen) {
       console.log('Modal is open, requesting camera access...')
-      requestCameraAccess()
+      // Add small delay to ensure DOM is ready
+      setTimeout(() => {
+        requestCameraAccess()
+      }, 100)
     } else {
       console.log('Modal is closed, stopping camera...')
       stopCamera()
+      resetState()
     }
     
     return () => {
@@ -36,35 +51,96 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
     }
   }, [isOpen])
 
+  const addDebugInfo = (info: string) => {
+    const timestamp = new Date().toLocaleTimeString()
+    setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 9)])
+    console.log(`[CameraModal Debug] ${info}`)
+  }
+
+  const resetState = () => {
+    setIsCapturing(false)
+    setCaptured(false)
+    setHasPermission(null)
+    setError(null)
+    setDebugInfo([])
+  }
+
   const requestCameraAccess = async () => {
     try {
       setError(null)
       setHasPermission(null)
-      
-      console.log('Requesting camera access...')
+      addDebugInfo('Starting camera access request...')
       
       // Prevent duplicate stream requests
       if (stream) {
-        console.log('Stream already exists, skipping request')
+        addDebugInfo('Stream already exists, skipping request')
         return
+      }
+      
+      // Check iframe security restrictions
+      if (isInIframe) {
+        addDebugInfo('Running in iframe - potential security restrictions')
+        // Try to detect if camera is blocked by iframe policy
+        try {
+          await navigator.permissions.query({ name: 'camera' as PermissionName })
+          addDebugInfo('Permissions API available')
+        } catch (e) {
+          addDebugInfo('Permissions API not available')
+        }
       }
       
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Camera not supported on this device")
       }
+      
+      addDebugInfo('getUserMedia is supported')
 
-      // Request camera permission with more specific constraints
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment', // Use back camera if available
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 }
-        },
-        audio: false
-      })
+      // Try to get existing permissions first
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName })
+        addDebugInfo(`Current camera permission: ${permissionStatus.state}`)
+        
+        if (permissionStatus.state === 'denied') {
+          throw new Error('Camera permission was previously denied')
+        }
+      } catch (e) {
+        addDebugInfo('Unable to check camera permissions')
+      }
 
-      console.log('Camera access granted, stream:', mediaStream)
+      addDebugInfo('Requesting media stream...')
+      
+      // Request camera permission with fallback constraints
+      let mediaStream: MediaStream
+      try {
+        // Try with ideal constraints first
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          },
+          audio: false
+        })
+      } catch (firstErr) {
+        addDebugInfo('Failed with environment camera, trying user camera...')
+        // Fallback to front camera
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: 'user',
+            width: { ideal: 1280, min: 320 },
+            height: { ideal: 720, min: 240 }
+          },
+          audio: false
+        })
+      }
+
+      addDebugInfo(`Camera access granted, tracks: ${mediaStream.getVideoTracks().length}`)
+      const videoTrack = mediaStream.getVideoTracks()[0]
+      if (videoTrack) {
+        addDebugInfo(`Video track settings: ${JSON.stringify(videoTrack.getSettings())}`)
+      }
+      
       setStream(mediaStream)
       setHasPermission(true)
 
@@ -74,41 +150,46 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
         
         // Wait for metadata to load before playing
         videoRef.current.onloadedmetadata = () => {
-          console.log('Video metadata loaded, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
+          addDebugInfo(`Video metadata loaded: ${videoRef.current?.videoWidth}x${videoRef.current?.videoHeight}`)
           if (videoRef.current) {
-            console.log('Attempting to play video...')
+            addDebugInfo('Attempting to play video...')
             videoRef.current.play().then(() => {
-              console.log('Video playing successfully')
+              addDebugInfo('Video playing successfully')
             }).catch(err => {
-              console.error('Failed to play video:', err)
+              addDebugInfo(`Failed to play video: ${err.message}`)
             })
           }
         }
         
-        // Additional event listeners for debugging
         videoRef.current.oncanplay = () => {
-          console.log('Video can start playing')
+          addDebugInfo('Video can start playing')
         }
         
         videoRef.current.onerror = (err) => {
-          console.error('Video error:', err)
+          addDebugInfo(`Video error: ${err}`)
         }
       }
     } catch (err) {
-      console.error('Camera access error:', err)
+      addDebugInfo(`Camera access error: ${err instanceof Error ? err.message : String(err)}`)
       setHasPermission(false)
       
       if (err instanceof Error) {
         if (err.name === 'NotAllowedError') {
-          setError("Camera permission denied. Please allow camera access and try again.")
+          if (isInIframe) {
+            setError("Camera blocked by iframe security. Please open this app in a new tab to use the camera.")
+          } else {
+            setError("Camera permission denied. Please allow camera access and try again.")
+          }
         } else if (err.name === 'NotFoundError') {
           setError("No camera found on this device.")
         } else if (err.name === 'NotSupportedError') {
           setError("Camera not supported on this browser.")
         } else if (err.name === 'SecurityError') {
-          setError("Camera blocked by browser security. Try opening in a new tab if using an iframe.")
+          setError("Camera blocked by browser security. This is common in iframe previews - try opening in a new tab.")
+        } else if (err.message.includes('denied')) {
+          setError("Camera permission was denied. Please reset camera permissions in your browser settings.")
         } else {
-          setError("Failed to access camera. Please try again.")
+          setError(`Camera error: ${err.message}`)
         }
       } else {
         setError("An unexpected error occurred.")
@@ -118,12 +199,21 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
 
   const stopCamera = () => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop())
+      addDebugInfo(`Stopping camera stream with ${stream.getTracks().length} tracks`)
+      stream.getTracks().forEach(track => {
+        track.stop()
+        addDebugInfo(`Stopped track: ${track.kind}`)
+      })
       setStream(null)
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null
     }
+  }
+
+  const openInNewTab = () => {
+    const currentUrl = window.location.href
+    window.open(currentUrl, '_blank')
   }
 
   const handleCapture = async () => {
@@ -189,10 +279,9 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
 
   const handleClose = () => {
     if (!isCapturing) {
-      setCaptured(false)
+      addDebugInfo('Closing modal and resetting state')
+      resetState()
       stopCamera()
-      setError(null)
-      setHasPermission(null)
       onClose()
     }
   }
@@ -224,14 +313,26 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
                 <p className="text-sm text-foreground-secondary text-center mb-4">
                   {error || "Please allow camera access to capture photos"}
                 </p>
-                <Button 
-                  onClick={requestCameraAccess}
-                  variant="outline"
-                  className="border-destructive/30 hover:border-destructive/60"
-                >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Try Again
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={requestCameraAccess}
+                    variant="outline"
+                    className="border-destructive/30 hover:border-destructive/60 w-full"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Try Again
+                  </Button>
+                  {isInIframe && (
+                    <Button 
+                      onClick={openInNewTab}
+                      variant="outline"
+                      className="border-primary/30 hover:border-primary/60 w-full"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open in New Tab
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : hasPermission === null ? (
               /* Loading State */
@@ -331,7 +432,22 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
           <div className="text-center text-sm text-foreground-secondary space-y-1">
             <p>💡 Make sure your food is well-lit</p>
             <p>📱 Hold your device steady</p>
+            {isInIframe && (
+              <p className="text-xs text-warning">⚠️ Running in preview mode - camera may be restricted</p>
+            )}
           </div>
+
+          {/* Debug Info (only show if there are errors) */}
+          {(error || debugInfo.length > 0) && (
+            <details className="text-xs text-foreground-secondary">
+              <summary className="cursor-pointer text-xs mb-2">Debug Information</summary>
+              <div className="bg-muted/10 rounded p-2 max-h-32 overflow-y-auto">
+                {debugInfo.map((info, index) => (
+                  <div key={index} className="font-mono text-xs break-all">{info}</div>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
       </DialogContent>
     </Dialog>
