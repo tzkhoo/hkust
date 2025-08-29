@@ -45,14 +45,14 @@ export function useSwipeCard({ onSwipe, onAnimationComplete, threshold = 80 }: U
       const exitRotation = direction === 'left' ? '-30deg' : '30deg'
       cardRef.current.style.transform = `translateX(${exitDirection}) rotate(${exitRotation})`
       cardRef.current.style.opacity = '0'
-      cardRef.current.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      cardRef.current.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     }
     
     // Animate next card to front position
     if (nextCardRef.current) {
       nextCardRef.current.style.transform = 'scale(1) translateY(0)'
       nextCardRef.current.style.opacity = '1'
-      nextCardRef.current.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+      nextCardRef.current.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
       nextCardRef.current.style.zIndex = '15' // Between background and foreground
     }
     
@@ -60,14 +60,14 @@ export function useSwipeCard({ onSwipe, onAnimationComplete, threshold = 80 }: U
     onSwipe(direction)
     
     setTimeout(() => {
-      // Reset states
+      // Reset states only after parent updates
       setSwipeDistance(0)
       setIsAnimating(false)
       setActiveDirection(null)
       setHasPassedThreshold(false)
       setDragProgress(0)
       onAnimationComplete?.()
-    }, 400)
+    }, 500)
   }
 
   // Mouse/touch event handlers

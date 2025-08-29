@@ -68,11 +68,13 @@ export function SwipeableRestaurantCard({
       cardRef.current.style.transform = ""
       cardRef.current.style.opacity = "1"
       cardRef.current.style.transition = ""
+      cardRef.current.style.zIndex = "20"
     }
     if (nextCardRef.current) {
-      nextCardRef.current.style.transform = ""
-      nextCardRef.current.style.opacity = ""
+      nextCardRef.current.style.transform = "scale(0.95) translateY(8px)"
+      nextCardRef.current.style.opacity = "0.7"
       nextCardRef.current.style.transition = ""
+      nextCardRef.current.style.zIndex = "0"
     }
   }, [restaurant.id])
 
@@ -114,8 +116,16 @@ export function SwipeableRestaurantCard({
               alt={nextRestaurant.name}
               className="w-full h-full object-cover"
             />
+            <div className="absolute top-4 right-4">
+              <Badge className="bg-background/80 text-foreground">
+                {currentIndex + 2} of {totalCount}
+              </Badge>
+            </div>
           </div>
+
+          {/* Scrollable Content Container */}
           <div className="flex-1 overflow-y-auto overscroll-contain">
+            {/* Restaurant Info */}
             <div className="p-4 sm:p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
@@ -127,6 +137,62 @@ export function SwipeableRestaurantCard({
                   <span className="text-sm font-medium">{nextRestaurant.rating}</span>
                 </div>
               </div>
+
+              <div className="flex items-center gap-4 mb-6 text-sm text-foreground-secondary">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  <span>{nextRestaurant.distance}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span>Open now</span>
+                </div>
+              </div>
+
+              {/* Top Recommended Dishes */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Top Matches for You</h3>
+                <div className="space-y-3">
+                  {nextRestaurant.topDishes.map((dish, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm truncate">{dish.name}</h4>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <Badge 
+                            className={`text-xs ${getHealthScoreBg(dish.healthScore)} ${getHealthScoreColor(dish.healthScore)}`}
+                          >
+                            {dish.healthScore}% Health Match
+                          </Badge>
+                          <span className="text-xs font-medium">{dish.price}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Fixed Action Buttons with Safe Area */}
+          <div className="flex-shrink-0 p-4 sm:p-6 pb-safe-area-inset-bottom bg-gradient-to-t from-background/95 to-transparent backdrop-blur-sm">
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                size="lg"
+                className="flex-1 border-destructive text-destructive hover:bg-destructive/10"
+                disabled
+              >
+                <X className="h-5 w-5 mr-2" />
+                Pass
+              </Button>
+              <Button
+                size="lg"
+                className="flex-1"
+                disabled
+              >
+                <Heart className="h-5 w-5 mr-2" />
+                Interested
+              </Button>
             </div>
           </div>
         </Card>
