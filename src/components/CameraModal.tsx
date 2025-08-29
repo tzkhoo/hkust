@@ -10,277 +10,152 @@ interface CameraModalProps {
 }
 
 export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
-  const [isCapturing, setIsCapturing] = useState(false)
-  const [captured, setCaptured] = useState(false)
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
-  const [isInIframe, setIsInIframe] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string[]>([])
-  
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [captured, setCaptured] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  // Request camera permissions and start stream
-  useEffect(() => {
-    console.log('CameraModal useEffect triggered, isOpen:', isOpen)
-    
-    // Check if running in iframe
-    const inIframe = window !== window.top
-    setIsInIframe(inIframe)
-    addDebugInfo(`Running in iframe: ${inIframe}`)
-    addDebugInfo(`User agent: ${navigator.userAgent}`)
-    addDebugInfo(`Protocol: ${window.location.protocol}`)
-    addDebugInfo(`Host: ${window.location.host}`)
-    
-    if (isOpen) {
-      console.log('Modal is open, requesting camera access...')
-      // Add small delay to ensure DOM is ready
-      setTimeout(() => {
-        requestCameraAccess()
-      }, 100)
-    } else {
-      console.log('Modal is closed, stopping camera...')
-      stopCamera()
-      resetState()
-    }
-    
-    return () => {
-      console.log('CameraModal cleanup triggered')
-      stopCamera()
-    }
-  }, [isOpen])
+  const isInIframe = window.self !== window.top
 
-  const addDebugInfo = (info: string) => {
-    const timestamp = new Date().toLocaleTimeString()
-    setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 9)])
-    console.log(`[CameraModal Debug] ${info}`)
+  const isSecureContext = () => {
+    return window.location.protocol === 'https:' || 
+           window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1'
   }
 
-  const resetState = () => {
-    setIsCapturing(false)
-    setCaptured(false)
-    setHasPermission(null)
-    setError(null)
-    setDebugInfo([])
-  }
-
-  const requestCameraAccess = async () => {
+  const openCamera = async () => {
     try {
+      setIsLoading(true)
       setError(null)
-      setHasPermission(null)
-      addDebugInfo('Starting camera access request...')
-      
-      // Prevent duplicate stream requests
-      if (stream) {
-        addDebugInfo('Stream already exists, skipping request')
+
+      if (!isSecureContext()) {
+        setError("Camera needs HTTPS or localhost.")
         return
       }
-      
-      // Check iframe security restrictions
-      if (isInIframe) {
-        addDebugInfo('Running in iframe - potential security restrictions')
-        // Try to detect if camera is blocked by iframe policy
-        try {
-          await navigator.permissions.query({ name: 'camera' as PermissionName })
-          addDebugInfo('Permissions API available')
-        } catch (e) {
-          addDebugInfo('Permissions API not available')
-        }
-      }
-      
-      // Check if getUserMedia is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera not supported on this device")
-      }
-      
-      addDebugInfo('getUserMedia is supported')
 
-      // Try to get existing permissions first
-      try {
-        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName })
-        addDebugInfo(`Current camera permission: ${permissionStatus.state}`)
-        
-        if (permissionStatus.state === 'denied') {
-          throw new Error('Camera permission was previously denied')
-        }
-      } catch (e) {
-        addDebugInfo('Unable to check camera permissions')
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError("Camera API not supported on this browser.")
+        return
       }
 
-      addDebugInfo('Requesting media stream...')
-      
-      // Request camera permission with fallback constraints
-      let mediaStream: MediaStream
-      try {
-        // Try with ideal constraints first
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { 
-            facingMode: 'environment',
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 }
-          },
-          audio: false
-        })
-      } catch (firstErr) {
-        addDebugInfo('Failed with environment camera, trying user camera...')
-        // Fallback to front camera
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { 
-            facingMode: 'user',
-            width: { ideal: 1280, min: 320 },
-            height: { ideal: 720, min: 240 }
-          },
-          audio: false
-        })
-      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      })
 
-      addDebugInfo(`Camera access granted, tracks: ${mediaStream.getVideoTracks().length}`)
-      const videoTrack = mediaStream.getVideoTracks()[0]
-      if (videoTrack) {
-        addDebugInfo(`Video track settings: ${JSON.stringify(videoTrack.getSettings())}`)
-      }
-      
-      setStream(mediaStream)
-      setHasPermission(true)
+      setStream(stream)
 
-      // Start video stream
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-        
-        // Wait for metadata to load before playing
-        videoRef.current.onloadedmetadata = () => {
-          addDebugInfo(`Video metadata loaded: ${videoRef.current?.videoWidth}x${videoRef.current?.videoHeight}`)
-          if (videoRef.current) {
-            addDebugInfo('Attempting to play video...')
-            videoRef.current.play().then(() => {
-              addDebugInfo('Video playing successfully')
-            }).catch(err => {
-              addDebugInfo(`Failed to play video: ${err.message}`)
-            })
-          }
-        }
-        
-        videoRef.current.oncanplay = () => {
-          addDebugInfo('Video can start playing')
-        }
-        
-        videoRef.current.onerror = (err) => {
-          addDebugInfo(`Video error: ${err}`)
-        }
+        videoRef.current.srcObject = stream
+        // Critical for iOS Safari - play after user gesture
+        await videoRef.current.play().catch(() => {
+          // Expected on some browsers, will work after user interaction
+        })
       }
-    } catch (err) {
-      addDebugInfo(`Camera access error: ${err instanceof Error ? err.message : String(err)}`)
-      setHasPermission(false)
+
+    } catch (err: any) {
+      console.error('Camera error:', err)
       
-      if (err instanceof Error) {
-        if (err.name === 'NotAllowedError') {
-          if (isInIframe) {
-            setError("Camera blocked by iframe security. Please open this app in a new tab to use the camera.")
-          } else {
-            setError("Camera permission denied. Please allow camera access and try again.")
-          }
-        } else if (err.name === 'NotFoundError') {
-          setError("No camera found on this device.")
-        } else if (err.name === 'NotSupportedError') {
-          setError("Camera not supported on this browser.")
-        } else if (err.name === 'SecurityError') {
-          setError("Camera blocked by browser security. This is common in iframe previews - try opening in a new tab.")
-        } else if (err.message.includes('denied')) {
-          setError("Camera permission was denied. Please reset camera permissions in your browser settings.")
-        } else {
-          setError(`Camera error: ${err.message}`)
-        }
+      if (err.name === 'NotAllowedError') {
+        setError('Permission denied. Enable camera access in browser settings.')
+      } else if (err.name === 'NotFoundError') {
+        setError('No camera found.')
+      } else if (err.name === 'OverconstrainedError') {
+        setError('Requested camera constraints not available.')
+      } else if (err.message?.includes('secure')) {
+        setError('Use HTTPS or localhost for camera access.')
+      } else if (isInIframe) {
+        setError('Camera blocked in iframe. Try opening in a new tab.')
       } else {
-        setError("An unexpected error occurred.")
+        setError('Unable to start camera.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const stopCamera = () => {
+  const closeCamera = () => {
     if (stream) {
-      addDebugInfo(`Stopping camera stream with ${stream.getTracks().length} tracks`)
-      stream.getTracks().forEach(track => {
-        track.stop()
-        addDebugInfo(`Stopped track: ${track.kind}`)
-      })
+      stream.getTracks().forEach(track => track.stop())
       setStream(null)
     }
+    
     if (videoRef.current) {
       videoRef.current.srcObject = null
     }
   }
 
-  const openInNewTab = () => {
-    const currentUrl = window.location.href
-    window.open(currentUrl, '_blank')
-  }
+  const takePhoto = () => {
+    if (!videoRef.current || !canvasRef.current || !stream) return
 
-  const handleCapture = async () => {
-    if (!videoRef.current || !canvasRef.current || !hasPermission) {
-      addDebugInfo(`Capture failed - missing elements: video=${!!videoRef.current}, canvas=${!!canvasRef.current}, permission=${hasPermission}`)
-      return
-    }
+    const video = videoRef.current
+    const canvas = canvasRef.current
     
-    setIsCapturing(true)
-    addDebugInfo('Starting capture...')
+    const track = stream.getVideoTracks()[0]
+    const settings = track.getSettings?.() || { width: 720, height: 1280 }
+    const width = settings.width || video.videoWidth || 720
+    const height = settings.height || video.videoHeight || 1280
+
+    canvas.width = width
+    canvas.height = height
     
-    try {
-      const video = videoRef.current
-      const canvas = canvasRef.current
-      const context = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, width, height)
       
-      if (!context) throw new Error('Canvas context not available')
-
-      // Ensure video is playing and has dimensions
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        addDebugInfo(`Video not ready - dimensions: ${video.videoWidth}x${video.videoHeight}`)
-        throw new Error('Video not ready - no dimensions available')
-      }
-
-      addDebugInfo(`Capturing from video: ${video.videoWidth}x${video.videoHeight}`)
-
-      // Set canvas dimensions to match video
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-
-      // Draw current video frame to canvas
-      context.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-      // Convert to blob and create photo URL
-      canvas.toBlob((blob) => {
+      canvas.toBlob(blob => {
         if (blob) {
-          const photoUrl = URL.createObjectURL(blob)
-          addDebugInfo(`Photo captured successfully: ${blob.size} bytes`)
-          setCaptured(true)
-          setIsCapturing(false)
-          
-          // Call parent callback with photo
-          onCapture(photoUrl)
-          
-          // Auto close after success animation
-          setTimeout(() => {
-            setCaptured(false)
-            handleClose()
-          }, 1500)
-        } else {
-          throw new Error('Failed to create blob from canvas')
+          const reader = new FileReader()
+          reader.onload = () => {
+            const dataUrl = reader.result as string
+            onCapture(dataUrl)
+            setCaptured(true)
+            
+            setTimeout(() => {
+              setCaptured(false)
+              handleClose()
+            }, 1500)
+          }
+          reader.readAsDataURL(blob)
         }
-      }, 'image/jpeg', 0.9)
-    } catch (err) {
-      addDebugInfo(`Capture error: ${err instanceof Error ? err.message : String(err)}`)
-      setError("Failed to capture photo. Please try again.")
-      setIsCapturing(false)
+      }, 'image/jpeg', 0.92)
     }
   }
 
   const handleClose = () => {
-    if (!isCapturing) {
-      addDebugInfo('Closing modal and resetting state')
-      resetState()
-      stopCamera()
-      onClose()
+    closeCamera()
+    setError(null)
+    setCaptured(false)
+    onClose()
+  }
+
+  // Cleanup on unmount and modal close
+  useEffect(() => {
+    if (!isOpen) {
+      closeCamera()
+      setError(null)
+      setCaptured(false)
     }
+    
+    return () => closeCamera()
+  }, [isOpen])
+
+  // Cleanup on page navigation
+  useEffect(() => {
+    const handlePageHide = () => closeCamera()
+    window.addEventListener('pagehide', handlePageHide)
+    return () => window.removeEventListener('pagehide', handlePageHide)
+  }, [])
+
+  const openInNewTab = () => {
+    const url = `${window.location.origin}${window.location.pathname}?camera=true`
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -300,24 +175,25 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Camera Viewfinder */}
+          {/* Camera Interface */}
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-black">
-            {hasPermission === false || error ? (
+            {error ? (
               /* Error State */
               <div className="absolute inset-0 bg-gradient-to-br from-destructive/20 to-destructive/10 flex flex-col items-center justify-center p-4">
                 <AlertCircle className="h-16 w-16 text-destructive mb-4" />
                 <p className="text-destructive font-medium text-center mb-2">Camera Access Required</p>
                 <p className="text-sm text-foreground-secondary text-center mb-4">
-                  {error || "Please allow camera access to capture photos"}
+                  {error}
                 </p>
                 <div className="space-y-2">
                   <Button 
-                    onClick={requestCameraAccess}
+                    onClick={openCamera}
                     variant="outline"
                     className="border-destructive/30 hover:border-destructive/60 w-full"
+                    disabled={isLoading}
                   >
                     <Camera className="h-4 w-4 mr-2" />
-                    Try Again
+                    {isLoading ? 'Opening Camera...' : 'Open Camera'}
                   </Button>
                   {isInIframe && (
                     <Button 
@@ -331,12 +207,23 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
                   )}
                 </div>
               </div>
-            ) : hasPermission === null ? (
-              /* Loading State */
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 flex flex-col items-center justify-center">
-                <Camera className="h-16 w-16 text-primary animate-pulse mb-4" />
-                <p className="text-primary font-medium">Requesting Camera Access...</p>
-                <p className="text-sm text-foreground-secondary mt-2">Please allow camera permissions</p>
+            ) : !stream ? (
+              /* Initial State */
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 flex flex-col items-center justify-center p-4">
+                <Camera className="h-16 w-16 text-primary mb-4" />
+                <p className="text-primary font-medium text-center mb-2">Ready to Capture</p>
+                <p className="text-sm text-foreground-secondary text-center mb-4">
+                  Tap "Open Camera" to start
+                </p>
+                <Button 
+                  onClick={openCamera}
+                  variant="outline"
+                  className="border-primary/30 hover:border-primary/60"
+                  disabled={isLoading}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  {isLoading ? 'Opening Camera...' : 'Open Camera'}
+                </Button>
               </div>
             ) : (
               /* Camera View */
@@ -346,41 +233,19 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover bg-black"
+                  controls={false}
+                  className="w-full h-full object-cover"
                   style={{ 
-                    minHeight: '200px',
+                    display: 'block',
+                    minHeight: '300px',
                     backgroundColor: '#000'
                   }}
-                  onLoadedData={() => addDebugInfo('Video data loaded and ready to play')}
-                  onPlay={() => addDebugInfo('Video started playing')}
-                  onTimeUpdate={() => {
-                    if (videoRef.current) {
-                      addDebugInfo(`Video playing: ${videoRef.current.videoWidth}x${videoRef.current.videoHeight}`)
-                    }
-                  }}
                 />
-                
-                {/* Loading overlay if video dimensions aren't ready */}
-                {hasPermission && videoRef.current?.videoWidth === 0 && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="text-center">
-                      <Camera className="h-8 w-8 text-white animate-pulse mx-auto mb-2" />
-                      <p className="text-white text-sm">Starting camera...</p>
-                    </div>
-                  </div>
-                )}
                 
                 {/* Success Overlay */}
                 {captured && (
                   <div className="absolute inset-0 bg-success/20 flex items-center justify-center">
                     <CheckCircle className="h-16 w-16 text-success animate-scale-in" />
-                  </div>
-                )}
-                
-                {/* Scanning Animation */}
-                {isCapturing && (
-                  <div className="absolute inset-0 border-2 border-primary/60 animate-pulse">
-                    <div className="absolute inset-2 border border-accent/40 animate-glow-pulse" />
                   </div>
                 )}
 
@@ -402,70 +267,64 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
               variant="outline"
               size="lg"
               onClick={handleClose}
-              disabled={isCapturing}
               className="glass-card border-muted hover:border-primary/50"
             >
               <X className="h-5 w-5 mr-2" />
               Cancel
             </Button>
             
-            <Button
-              size="lg"
-              onClick={handleCapture}
-              disabled={isCapturing || captured || !hasPermission}
-              className={`btn-primary px-8 relative overflow-hidden ${
-                captured ? 'bg-success hover:bg-success' : ''
-              }`}
-            >
-              {captured ? (
-                <>
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  Captured!
-                </>
-              ) : !hasPermission ? (
-                <>
-                  <AlertCircle className="h-5 w-5 mr-2" />
-                  Enable Camera
-                </>
-              ) : isCapturing ? (
-                <>
-                  <Camera className="h-5 w-5 mr-2 animate-pulse" />
-                  Capturing...
-                </>
-              ) : (
-                <>
-                  <Camera className="h-5 w-5 mr-2" />
-                  Capture
-                </>
-              )}
-              
-              {/* Capture Flash Effect */}
-              {isCapturing && (
-                <div className="absolute inset-0 bg-white/30 animate-ping" />
-              )}
-            </Button>
-          </div>
-
-          {/* Tips */}
-          <div className="text-center text-sm text-foreground-secondary space-y-1">
-            <p>💡 Make sure your food is well-lit</p>
-            <p>📱 Hold your device steady</p>
-            {isInIframe && (
-              <p className="text-xs text-warning">⚠️ Running in preview mode - camera may be restricted</p>
+            {stream && (
+              <Button
+                size="lg"
+                onClick={takePhoto}
+                disabled={captured}
+                className={`btn-primary px-8 relative overflow-hidden ${
+                  captured ? 'bg-success hover:bg-success' : ''
+                }`}
+              >
+                {captured ? (
+                  <>
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Captured!
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-5 w-5 mr-2" />
+                    Take Photo
+                  </>
+                )}
+              </Button>
+            )}
+            
+            {stream && !captured && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={closeCamera}
+                className="glass-card border-muted hover:border-destructive/50"
+              >
+                Close Camera
+              </Button>
             )}
           </div>
 
-          {/* Debug Info (only show if there are errors) */}
-          {(error || debugInfo.length > 0) && (
-            <details className="text-xs text-foreground-secondary">
-              <summary className="cursor-pointer text-xs mb-2">Debug Information</summary>
-              <div className="bg-muted/10 rounded p-2 max-h-32 overflow-y-auto">
-                {debugInfo.map((info, index) => (
-                  <div key={index} className="font-mono text-xs break-all">{info}</div>
-                ))}
-              </div>
-            </details>
-          )}
+          {/* Info */}
+          <div className="text-center text-sm text-foreground-secondary space-y-1">
+            {!stream ? (
+              <>
+                <p>📱 Camera access required for photo capture</p>
+                <p>🔒 Your privacy is protected - photos stay on your device</p>
+              </>
+            ) : (
+              <>
+                <p>💡 Make sure your food is well-lit</p>
+                <p>📱 Hold your device steady</p>
+              </>
+            )}
+            {isInIframe && (
+              <p className="text-xs text-warning">⚠️ Running in preview mode - may have camera restrictions</p>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
