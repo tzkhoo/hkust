@@ -64,18 +64,21 @@ export function SwipeableRestaurantCard({
 
   // Reset cards when restaurant changes
   useEffect(() => {
-    if (cardRef.current) {
-      cardRef.current.style.transform = ""
-      cardRef.current.style.opacity = "1"
-      cardRef.current.style.transition = ""
-      cardRef.current.style.zIndex = "20"
-    }
-    if (nextCardRef.current) {
-      nextCardRef.current.style.transform = "scale(0.95) translateY(8px)"
-      nextCardRef.current.style.opacity = "0.7"
-      nextCardRef.current.style.transition = ""
-      nextCardRef.current.style.zIndex = "0"
-    }
+    // Use requestAnimationFrame to ensure DOM updates are complete
+    requestAnimationFrame(() => {
+      if (cardRef.current) {
+        cardRef.current.style.transition = ""
+        cardRef.current.style.transform = ""
+        cardRef.current.style.opacity = "1"
+        cardRef.current.style.zIndex = "20"
+      }
+      if (nextCardRef.current) {
+        nextCardRef.current.style.transition = ""
+        nextCardRef.current.style.transform = "scale(0.95) translateY(8px)"
+        nextCardRef.current.style.opacity = "0.7"
+        nextCardRef.current.style.zIndex = "0"
+      }
+    })
   }, [restaurant.id])
 
   const getHealthScoreColor = (score: number) => {

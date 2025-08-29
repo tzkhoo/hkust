@@ -66,8 +66,16 @@ export function useSwipeCard({ onSwipe, onAnimationComplete, threshold = 80 }: U
       setActiveDirection(null)
       setHasPassedThreshold(false)
       setDragProgress(0)
+      
+      // Clear any remaining styles on the current card that was swiped away
+      if (cardRef.current) {
+        cardRef.current.style.transform = ""
+        cardRef.current.style.opacity = ""
+        cardRef.current.style.transition = ""
+      }
+      
       onAnimationComplete?.()
-    }, 500)
+    }, 550)
   }
 
   // Mouse/touch event handlers
