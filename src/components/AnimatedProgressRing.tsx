@@ -83,10 +83,10 @@ export function AnimatedProgressRing({
           </linearGradient>
         </defs>
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-bold font-mono">{animatedValue.toLocaleString()}</div>
-          <div className="text-xs text-foreground-secondary">of {max.toLocaleString()}</div>
+      <div className="absolute inset-4 flex items-center justify-center">
+        <div className="text-center px-2">
+          <div className="text-base font-bold font-mono leading-tight">{animatedValue.toLocaleString()}</div>
+          <div className="text-xs text-foreground-secondary mt-0.5">of {max.toLocaleString()}</div>
         </div>
       </div>
     </div>
