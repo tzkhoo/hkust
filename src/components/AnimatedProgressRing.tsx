@@ -19,7 +19,8 @@ export function AnimatedProgressRing({
   const [animatedPercentage, setAnimatedPercentage] = useState(0)
   
   const percentage = (value / max) * 100
-  const circumference = 2 * Math.PI * (size / 2 - 8)
+  const radius = size / 2 - 12
+  const circumference = 2 * Math.PI * radius
   const strokeDasharray = circumference
   const strokeDashoffset = circumference - (animatedPercentage / 100) * circumference
 
@@ -57,18 +58,18 @@ export function AnimatedProgressRing({
         <circle
           cx={size / 2}
           cy={size / 2}
-          r={size / 2 - 8}
+          r={radius}
           stroke="currentColor"
-          strokeWidth="6"
+          strokeWidth="4"
           fill="transparent"
           className="text-muted"
         />
         <circle
           cx={size / 2}
           cy={size / 2}
-          r={size / 2 - 8}
+          r={radius}
           stroke="url(#gradient)"
-          strokeWidth="6"
+          strokeWidth="4"
           fill="transparent"
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
@@ -82,10 +83,10 @@ export function AnimatedProgressRing({
           </linearGradient>
         </defs>
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-bold font-mono">{animatedValue.toLocaleString()}</div>
-          <div className="text-xs text-foreground-secondary">of {max.toLocaleString()}</div>
+      <div className="absolute inset-4 flex items-center justify-center">
+        <div className="text-center px-2">
+          <div className="text-base font-bold font-mono leading-tight">{animatedValue.toLocaleString()}</div>
+          <div className="text-xs text-foreground-secondary mt-0.5">of {max.toLocaleString()}</div>
         </div>
       </div>
     </div>
