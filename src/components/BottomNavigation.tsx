@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Home, Heart, Utensils, Sparkles, UtensilsCrossed, Settings } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -8,8 +8,28 @@ export function BottomNavigation() {
   const [isAIOpen, setIsAIOpen] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [showRipples, setShowRipples] = useState(false)
+  const [sliderPosition, setSliderPosition] = useState(0)
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Navigation tabs configuration (excluding AI button)
+  const tabs = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/health', icon: Heart, label: 'Health' },
+    { path: '/food', icon: Utensils, label: 'Food' },
+    { path: '/meals', icon: UtensilsCrossed, label: 'Meals' }
+  ]
+
+  // Calculate slider position based on active tab
+  useEffect(() => {
+    const activeIndex = tabs.findIndex(tab => tab.path === location.pathname)
+    if (activeIndex !== -1) {
+      // Each tab is 60px wide, AI button in center adds 70px offset after 2nd tab
+      const basePosition = activeIndex * 60
+      const aiOffset = activeIndex >= 2 ? 70 : 0 // Add AI button width for tabs after it
+      setSliderPosition(basePosition + aiOffset + 12) // 12px for padding adjustment
+    }
+  }, [location.pathname])
 
   const handleAIClick = async () => {
     if (isAIOpen) {
@@ -52,15 +72,24 @@ export function BottomNavigation() {
       {/* Bottom Navigation Bar */}
       <div className="fixed bottom-4 left-4 right-4 z-50 pb-safe-bottom">
         <div className="max-w-lg mx-auto">
-          <nav className="glass-card px-3 py-2 flex items-center justify-between border-2 soft-glow" style={{ height: '60px', borderRadius: '30px' }}>
+          <nav className="glass-card px-3 py-2 flex items-center justify-between border-2 soft-glow relative overflow-hidden" style={{ height: '60px', borderRadius: '30px' }}>
+            {/* Animated slider background */}
+            <div 
+              className="absolute top-2 left-0 w-12 h-12 bg-primary/20 rounded-xl transition-all duration-300 ease-out"
+              style={{ 
+                transform: `translateX(${sliderPosition}px)`,
+                opacity: tabs.some(tab => tab.path === location.pathname) ? 1 : 0
+              }}
+            />
+            
             {/* Home Tab */}
             <Button
               variant="ghost"
               onClick={() => navigate('/')}
               className={`
-                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px]
+                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px] relative z-10
                 ${isActive('/') 
-                  ? 'bg-primary/20 text-primary' 
+                  ? 'text-primary' 
                   : 'text-foreground-secondary hover:text-foreground'
                 }
               `}
@@ -74,9 +103,9 @@ export function BottomNavigation() {
               variant="ghost"
               onClick={() => navigate('/health')}
               className={`
-                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px]
+                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px] relative z-10
                 ${isActive('/health') 
-                  ? 'bg-primary/20 text-primary' 
+                  ? 'text-primary' 
                   : 'text-foreground-secondary hover:text-foreground'
                 }
               `}
@@ -140,9 +169,9 @@ export function BottomNavigation() {
               variant="ghost"
               onClick={() => navigate('/food')}
               className={`
-                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px]
+                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px] relative z-10
                 ${isActive('/food') 
-                  ? 'bg-primary/20 text-primary' 
+                  ? 'text-primary' 
                   : 'text-foreground-secondary hover:text-foreground'
                 }
               `}
@@ -156,9 +185,9 @@ export function BottomNavigation() {
               variant="ghost"
               onClick={() => navigate('/meals')}
               className={`
-                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px]
+                flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200 h-12 min-w-[60px] relative z-10
                 ${isActive('/meals')
-                  ? 'bg-primary/20 text-primary' 
+                  ? 'text-primary' 
                   : 'text-foreground-secondary hover:text-foreground'
                 }
               `}
