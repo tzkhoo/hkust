@@ -19,7 +19,8 @@ export function AnimatedProgressRing({
   const [animatedPercentage, setAnimatedPercentage] = useState(0)
   
   const percentage = (value / max) * 100
-  const circumference = 2 * Math.PI * (size / 2 - 8)
+  const radius = size / 2 - 12
+  const circumference = 2 * Math.PI * radius
   const strokeDasharray = circumference
   const strokeDashoffset = circumference - (animatedPercentage / 100) * circumference
 
@@ -57,18 +58,18 @@ export function AnimatedProgressRing({
         <circle
           cx={size / 2}
           cy={size / 2}
-          r={size / 2 - 8}
+          r={radius}
           stroke="currentColor"
-          strokeWidth="6"
+          strokeWidth="4"
           fill="transparent"
           className="text-muted"
         />
         <circle
           cx={size / 2}
           cy={size / 2}
-          r={size / 2 - 8}
+          r={radius}
           stroke="url(#gradient)"
-          strokeWidth="6"
+          strokeWidth="4"
           fill="transparent"
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
